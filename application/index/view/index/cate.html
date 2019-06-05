@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>影片分类列表</title>
+
+    <link rel="stylesheet" href="__STATIC__/plugins/layui/css/layui.css">
+    <script type="text/javascript" src="__STATIC__/plugins/layui/layui.js"></script>
+
+    <style type="text/css">
+        .header{width: 100%;height: 40px;background: #1d1e1d;}
+        .body{width: 60%;margin-left: 20%; margin-top: 20px;}
+        .cates{width: 100%; border: #C2BE9E 1px solid;}
+        .cates-item{padding: 0px 5px 5px 5px;margin-top: 5px;border-bottom: #C2BE9E 1px dashed;}
+        .cates-label{padding: 5px;}
+
+        .video-list{width: 100%; margin-top: 15px;}
+        .video-list .video-item{background: #C2BE9E;}
+        .video-list .video-item img{height: 160px; width: 100%;}
+        .video-list .video-item a{color: #000000; height: 160px;}
+        .video-list .video-item a:hover{color: #000000; height: 160px;}
+        .video-list .video-desc{height: 40px; overflow: hidden; background: #f8f8f8}
+
+        .selected-label{background: #699e00;border-radius: 3px; padding: 3px;color: #ffffff;}
+        .layui-laypage .layui-laypage-curr .layui-laypage-em{background-color: #699e00;}
+    </style>
+</head>
+<body>
+    <input type="hidden" id="label_channel" value="{$data.label_channel}">
+    <input type="hidden" id="label_charge" value="{$data.label_charge}">
+    <input type="hidden" id="label_area" value="{$data.label_area}">
+
+    <div class="header"></div>
+
+    <div class="body">
+        <div class="cates">
+            <div class="cates-item">
+                <span>频道: </span>
+                <a href="/index.php/index/index/cate?label_channel=0&label_charge={$data.label_charge}&label_area={$data.label_area}"><span class="cates-label {:in_array($data['label_channel'], array_keys($channel_list)) ? '' : 'selected-label'}">全部</span></a>
+                {volist name="channel_list" id="channel"}
+                <a href="/index.php/index/index/cate?label_channel={$channel.id}&label_charge={$data.label_charge}&label_area={$data.label_area}"><span class="cates-label {$data.label_channel == $channel.id ? 'selected-label' : ''}">{$channel.title}</span></a>
+                {/volist}
+            </div>
+            <div class="cates-item">
+                <span>资费: </span>
+                <a href="/index.php/index/index/cate?label_channel={$data.label_channel}&label_charge=0&label_area={$data.label_area}"><span class="cates-label {:in_array($data['label_charge'], array_keys($charge_list)) ? '' : 'selected-label'}">全部</span></a>
+                {volist name="charge_list" id="charge"}
+                <a href="/index.php/index/index/cate?label_channel={$data.label_channel}&label_charge={$charge.id}&label_area={$data.label_area}"><span class="cates-label {$data.label_charge == $charge.id ? 'selected-label' : ''}">{$charge.title}</span></a>
+                {/volist}
+            </div>
+            <div class="cates-item">
+                <span>地区: </span>
+                <a href="/index.php/index/index/cate?label_channel={$data.label_channel}&label_charge={$data.label_charge}&label_area=0"><span class="cates-label {:in_array($data['label_area'], array_keys($area_list)) ? '' : 'selected-label'}">全部</span></a>
+                {volist name="area_list" id="area"}
+                <a href="/index.php/index/index/cate?label_channel={$data.label_channel}&label_charge={$data.label_charge}&label_area={$area.id}"><span class="cates-label {$data.label_area == $area.id ? 'selected-label' : ''}">{$area.title}</span></a>
+                {/volist}
+            </div>
+        </div>
+
+        <div class="video-list">
+            <div class="layui-row layui-col-space5">
+                {for start="0" end="12" name="k"}
+                {volist name="data.data.lists" id="vo"}
+                <div class="layui-col-md2">
+                    <div class="video-item">
+                        <a target="_blank" href="/index.php/index/index/video?id={$vo.id}">
+                            <img src="{$vo.img}" alt="">
+                        </a>
+                    </div>
+                    <div class="video-desc">
+                        <a target="_blank" href="/index.php/index/index/video?id={$vo.id}">
+                            <span>{$vo.title}</span>
+                        </a>
+                    </div>
+                </div>
+                {/volist}
+                {/for}
+            </div>
+        </div>
+
+        <div id="pages"></div>
+    </div>
+</body>
+</html>
+
+<script type="text/javascript">
+    layui.use(['layer', 'laypage'], function () {
+        $ = layui.jquery;
+        var layer = layui.layer;
+        var laypage = layui.laypage;
+
+        //执行一个laypage实例
+        laypage.render({
+            elem: 'pages',
+            count: {$data.data.total},
+            limit: {$data.pageSize},
+            curr: {$data.page},
+            jump: function(obj, first){
+                //首次不执行
+                if(!first){
+                    searchs(obj.curr);
+                }
+            }
+        });
+    });
+
+    // 搜索
+    function searchs(curpage) {
+        var label_channel = $.trim($("#label_channel").val());
+        var label_charge = $.trim($("#label_charge").val());
+        var label_area = $.trim($("#label_area").val());
+        var url = '/index.php/index/index/cate?page=' + curpage;
+        if (label_channel) {
+            url += '&label_channel=' + label_channel;
+        }
+        if (label_charge) {
+            url += '&label_charge=' + label_charge;
+        }
+        if (label_area) {
+            url += '&label_area=' + label_area;
+        }
+        window.location.href = url;
+    }
+</script>

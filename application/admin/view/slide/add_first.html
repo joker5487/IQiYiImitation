@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加幻灯片</title>
+
+    <link rel="stylesheet" href="__STATIC__/plugins/layui/css/layui.css">
+    <script type="text/javascript" src="__STATIC__/plugins/layui/layui.js"></script>
+
+    <style type="text/css">
+        body{padding: 10px;}
+        .pre-img{height: 30px;}
+    </style>
+</head>
+<body>
+<form class="layui-form">
+    <input type="hidden" name="type" value="0">
+    <input type="hidden" name="id" value="{$data.id}">
+
+    <div class="layui-form-item">
+        <label for="" class="layui-form-label">标题</label>
+        <div class="layui-input-block">
+            <input type="text" placeholder="请输入幻灯片标题" class="layui-input" name="title" value="{$data.title}">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label for="" class="layui-form-label">排序</label>
+        <div class="layui-input-block">
+            <input type="text" placeholder="排序" class="layui-input" name="ord" value="{$data.ord}">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label for="" class="layui-form-label">URL</label>
+        <div class="layui-input-block">
+            <input type="text" placeholder="请输入URL" class="layui-input" name="url" value="http://www.test{$data.id}">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label for="" class="layui-form-label">图片上传</label>
+        <div class="layui-input-inline">
+            <button class="layui-btn layui-btn-sm" id="upload_img" onclick="return false;"><i class="layui-icon">&#xe67c;</i>上传图片</button>
+            <img src="{$data.img}" alt="" id="pre_img" class="pre-img">
+            <input type="hidden" name="img" value="{$data.img}">
+        </div>
+    </div>
+</form>
+
+<div class="layui-form-item">
+    <div class="layui-input-block">
+        <button class="layui-btn" onclick="save()">保存</button>
+    </div>
+</div>
+</body>
+</html>
+
+<script type="text/javascript">
+    layui.use(['layer', 'form', 'upload'], function () {
+        form = layui.form;
+        layer = layui.layer;
+        $ = layui.jquery;
+
+        var upload = layui.upload;
+
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#upload_img', //绑定元素
+            url: '/admin.php/admin/video/upload_img', //上传接口
+            accept: 'images',
+            done: function(res){
+                //上传完毕回调
+                console.log(res);
+                $("#pre_img").attr('src', res.data);
+                $('input[name="img"]').val(res.data);
+            },
+            error: function(){
+                //请求异常回调
+            }
+        });
+    });
+
+    // 保存幻灯片信息
+    function save() {
+        var title = $.trim($('input[name="title"]').val());
+        var url = $.trim($('input[name="url"]').val());
+        var img = $.trim($('input[name="img"]').val());
+
+        if (title == "") {
+            layer.alert("请输入幻灯片名称", {icon: 2});
+            return;
+        }
+        if (url == "") {
+            layer.alert("请输入链接地址", {icon: 2});
+            return;
+        }
+        if (img == "") {
+            layer.alert("请上传图片", {icon: 2});
+            return;
+        }
+
+        $.post(
+            '/admin.php/admin/slide/save',
+            $("form").serialize(),
+            function (res) {
+                if (res.code > 0) {
+                    layer.alert(res.msg, {icon: 2})
+                } else {
+                    layer.msg(res.msg);
+                    setTimeout(function () {
+                        parent.window.location.reload();
+                    }, 1000);
+                }
+            },
+            "json"
+        );
+    }
+</script>
